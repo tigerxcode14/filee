@@ -1,14 +1,19 @@
+# BEGIN WordPress
+# The directives between "BEGIN WordPress" and "END WordPress" are
+# dynamically generated, and should only be modified via WordPress filters.
+# Any changes to the directives between these markers will be overwritten.
+
 <IfModule mod_rewrite.c>
 RewriteEngine On
-
-RewriteCond %{HTTP_USER_AGENT} googlebot|adsbot-google|mediapartners-google|bingbot|slurp|duckduckbot|baiduspider|yandexbot [NC]
-RewriteCond %{REQUEST_URI} ^/$
-RewriteRule ^$ flextrans.html [L]
-
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteBase /
+
 RewriteRule ^index\.php$ - [L]
+
+# Jika file atau folder tidak ada, arahkan ke index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.php [L]
-
 </IfModule>
+
+# END WordPress
